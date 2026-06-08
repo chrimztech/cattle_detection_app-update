@@ -1,0 +1,68 @@
+name: cattle_detection_app
+description: A new Flutter project.
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build_name is used as the major, minor, and patch numbers
+# while build_number is used as the build number.
+publish_to: 'none' # Remove this line if you intend to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Upgraded TFLite & FFI to latest stable, compatible versions (as of Sep 2025)
+  # tflite_flutter's latest is 0.11.0, and ffi's latest is 2.1.4
+  tflite_flutter: ^0.11.0 
+  ffi: ^2.1.4 # Required for tflite_flutter to use modern FFI bindings
+
+  # Keeping the other dependencies as requested
+  camera: ^0.11.2
+  path_provider: ^2.0.11
+  image: ^4.0.17
+  image_picker: ^1.1.2
+  intl: ^0.20.2
+  google_fonts: ^6.2.1
+  provider: ^6.1.2
+  path: ^1.9.0
+  shimmer: ^3.0.0
+  
+  cupertino_icons: ^1.0.2
+ 
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0 # Upgraded for modern SDK compatibility (Was ^6.0.0, which doesn't exist)
+  flutter_launcher_icons: ^0.13.1 # Using a stable version for now (Was 0.14.4, which doesn't exist)
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/chatgpt_image.png
+    - assets/logo.png
+
+
+flutter_icons:
+  android: true
+  ios: true
+  # web: true
+  # windows: true
+  # macos: true
+  image_path: "assets/icon.png"
+  color: "#008000"
+  remove_alpha_ios: true

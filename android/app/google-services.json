@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "785011697122",
+    "project_id": "cattle-detection-app",
+    "storage_bucket": "cattle-detection-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:785011697122:android:59d8a8511a6e015c1705bb",
+        "android_client_info": {
+          "package_name": "com.example.cattle_detection_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvugIQG9NAkgVU7GUw77ITh-ngBShcGf4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
