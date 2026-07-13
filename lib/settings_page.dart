@@ -1,8 +1,10 @@
-// settings_page.dart - MODIFIED FOR SIMULATED LOGOUT
-
 import 'package:flutter/material.dart';
-// REMOVED: import 'package:firebase_auth/firebase_auth.dart';
-import 'login_page.dart'; // Import your login page
+import 'package:provider/provider.dart';
+
+import 'api_service.dart';
+import 'app_scaffold.dart';
+import 'login_page.dart';
+import 'session_controller.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -12,192 +14,137 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _notificationsEnabled = true;
-  bool _darkModeEnabled = false;
+  late TextEditingController _baseUrlController;
+  bool _saving = false;
 
-  // REMOVED: final FirebaseAuth _auth = FirebaseAuth.instance; 
+  @override
+  void initState() {
+    super.initState();
+    _baseUrlController = TextEditingController(
+      text: context.read<SessionController>().apiBaseUrl,
+    );
+  }
 
-  // New function for simulated logout
-  Future<void> _performSimulatedLogout() async {
-    // Simulate network delay for logout process
-    await Future.delayed(const Duration(seconds: 1)); 
+  @override
+  void dispose() {
+    _baseUrlController.dispose();
+    super.dispose();
+  }
 
-    // Navigate back to the LoginPage and clear the navigation stack
-    if (mounted) {
+  Future<void> _saveBaseUrl() async {
+    setState(() => _saving = true);
+    final session = context.read<SessionController>();
+    try {
+      await session.updateApiBaseUrl(_baseUrlController.text);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Logged out successfully! (Simulated)"),
+        SnackBar(
+          content: Text(
+            session.isAuthenticated
+                ? 'API base URL updated'
+                : 'API base URL updated. Sign in again to continue.',
+          ),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-        (route) => false, // Remove all previous routes
+      if (!session.isAuthenticated) {
+        _redirectToLogin();
+      }
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message), backgroundColor: Colors.redAccent),
       );
+      if (!session.isAuthenticated) {
+        _redirectToLogin();
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString()), backgroundColor: Colors.redAccent),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
+  }
+
+  Future<void> _logout() async {
+    await context.read<SessionController>().logout();
+    if (!mounted) return;
+    _redirectToLogin();
+  }
+
+  void _redirectToLogin() {
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (_) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Settings"),
-        backgroundColor: Colors.green.shade800,
-        centerTitle: true,
-        elevation: 2,
-        foregroundColor: Colors.white,
-      ),
+    final session = context.watch<SessionController>();
+    return AppScaffold(
+      title: 'Settings',
+      current: AppSection.settings,
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Account Section
-          const Text(
-            "Account",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: const Icon(Icons.person, color: Colors.green),
-              title: const Text("Profile"),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: () {
-                // Navigate to Profile Page
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Profile navigation not implemented")),
-                );
-              },
-            ),
-          ),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: const Icon(Icons.lock, color: Colors.orange),
-              title: const Text("Change Password"),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: () {
-                // Navigate to Change Password Page
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Change Password not implemented")),
-                );
-              },
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // App Preferences Section
-          const Text(
-            "App Preferences",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: SwitchListTile(
-              secondary: const Icon(Icons.notifications, color: Colors.blue),
-              title: const Text("Enable Notifications"),
-              value: _notificationsEnabled,
-              onChanged: (val) {
-                setState(() {
-                  _notificationsEnabled = val;
-                });
-              },
-            ),
-          ),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: SwitchListTile(
-              secondary: const Icon(Icons.dark_mode, color: Colors.deepPurple),
-              title: const Text("Dark Mode"),
-              value: _darkModeEnabled,
-              onChanged: (val) {
-                setState(() {
-                  _darkModeEnabled = val;
-                });
-              },
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Support Section
-          const Text(
-            "Support",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: const Icon(Icons.help_outline, color: Colors.indigo),
-              title: const Text("Help & Support"),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: () {
-                // Navigate to Support Page
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Help & Support not implemented")),
-                );
-              },
-            ),
-          ),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: const Icon(Icons.info_outline, color: Colors.teal),
-              title: const Text("About App"),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: () {
-                // Navigate to About Page
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("About App not implemented")),
-                );
-              },
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Logout Button
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                "Logout",
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Backend connection',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Use your backend host here. For Android emulators, `http://10.0.2.2:8080` works. For a physical device, use your laptop LAN IP. In production, match the backend PUBLIC_BASE_URL value.',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _baseUrlController,
+                    decoration: const InputDecoration(
+                      labelText: 'API base URL',
+                      hintText: 'http://10.0.2.2:8080',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _saving ? null : _saveBaseUrl,
+                    child: _saving
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Save connection'),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Current session: ${session.session?.username ?? 'No user'}',
+                    style: const TextStyle(color: Colors.black54),
+                  ),
+                ],
               ),
-              onTap: () {
-                _showLogoutDialog(context);
-              },
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Confirm Logout"),
-        content: const Text("Are you sure you want to log out?"),
-        actions: [
-          TextButton(
-            child: const Text("Cancel"),
-            onPressed: () => Navigator.pop(context),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("Logout"),
-            onPressed: () async {
-              Navigator.pop(context); // Close the dialog
-              
-              // MODIFIED: Replaced Firebase sign out with simulated action
-              await _performSimulatedLogout();
-            },
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              title: const Text(
+                'Logout',
+                style: TextStyle(fontWeight: FontWeight.w800, color: Colors.redAccent),
+              ),
+              subtitle: const Text('End the current backend-authenticated mobile session.'),
+              onTap: _logout,
+            ),
           ),
         ],
       ),
